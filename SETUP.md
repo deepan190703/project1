@@ -17,7 +17,7 @@
    PORT=5000
    MONGODB_URI=mongodb://localhost:27017/excel-analytics
    JWT_SECRET=your-secret-key-here
-   OPENAI_API_KEY=your-openai-api-key-here
+   GEMINI_API_KEY=your-gemini-api-key-here
    NODE_ENV=development
    ```
 
@@ -47,7 +47,7 @@
 
 - Node.js (v16 or higher)
 - MongoDB (local or cloud)
-- OpenAI API key (optional for AI features)
+- Google Gemini API key (optional for AI features)
 
 ## Features
 
@@ -65,7 +65,7 @@
 - Node.js + Express.js
 - MongoDB + Mongoose
 - JWT authentication
-- OpenAI API integration
+- Google Gemini API integration
 - Multer for file uploads
 - XLSX for Excel parsing
 
@@ -101,7 +101,7 @@ After first run, you can manually create an admin user in MongoDB or register a 
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/excel-analytics
 JWT_SECRET=your-jwt-secret-key
-OPENAI_API_KEY=your-openai-api-key
+GEMINI_API_KEY=your-gemini-api-key
 NODE_ENV=development
 ```
 

@@ -258,11 +258,9 @@ function generateChartHTML(chart) {
 }
 
 // Add to routes/files.js
-const OpenAI = require('openai'); // Install: npm install openai
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 router.post('/:id/ai-summary', auth, async (req, res) => {
   try {
@@ -294,13 +292,10 @@ router.post('/:id/ai-summary', auth, async (req, res) => {
       4. Data quality observations
     `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 500,
-    });
-
-    const aiSummary = completion.choices[0].message.content;
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const aiSummary = response.text();
 
     res.json({
       summary: aiSummary,

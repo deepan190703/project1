@@ -6,7 +6,7 @@ A comprehensive web application for uploading, analyzing, and visualizing Excel 
 
 - **File Upload**: Upload Excel files (XLSX, XLS, CSV formats)
 - **Data Visualization**: Interactive charts and graphs (2D and 3D)
-- **AI Analysis**: OpenAI-powered data insights and recommendations
+- **AI Analysis**: Google Gemini-powered data insights and recommendations
 - **User Authentication**: Secure login and registration system
 - **Analysis History**: Track and review previous analyses
 - **Chart Builder**: Create custom charts from your data
@@ -18,7 +18,7 @@ A comprehensive web application for uploading, analyzing, and visualizing Excel 
 - **Node.js** with Express.js
 - **MongoDB** with Mongoose
 - **JWT** for authentication
-- **OpenAI API** for AI analysis
+- **Google Gemini API** for AI analysis
 - **Multer** for file handling
 - **XLSX** for Excel file processing
 
@@ -65,7 +65,7 @@ project1/
 ### Prerequisites
 - Node.js (v14 or higher)
 - MongoDB
-- OpenAI API key
+- Google Gemini API key
 
 ### Backend Setup
 1. Navigate to the backend directory:
@@ -83,7 +83,7 @@ project1/
    PORT=5000
    MONGODB_URI=mongodb://localhost:27017/excel-analytics
    JWT_SECRET=your-jwt-secret
-   OPENAI_API_KEY=your-openai-api-key
+   GEMINI_API_KEY=your-gemini-api-key
    ```
 
 4. Start the backend server:
