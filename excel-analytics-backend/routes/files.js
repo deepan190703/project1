@@ -2,6 +2,7 @@
 const express = require('express');
 const multer = require('multer');
 const XLSX = require('xlsx');
+const mongoose = require('mongoose');
 const Analysis = require('../models/Analysis');
 const auth = require('../middleware/auth');
 
@@ -34,6 +35,30 @@ const findAnalysisInMemory = (id, userId) => {
 
 const findAnalysesByUserInMemory = (userId) => {
   return global.inMemoryAnalyses.filter(analysis => analysis.userId == userId);
+};
+
+// Helper function to validate ID parameter
+const validateIdParameter = (id) => {
+  // Check if id is undefined, null, empty, or the string "undefined"
+  if (!id || id === 'undefined' || id === 'null') {
+    return false;
+  }
+  
+  // For MongoDB ObjectId validation (24 character hex string)
+  if (typeof id === 'string' && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id)) {
+    return true;
+  }
+  
+  // For in-memory ID validation (should be a number or string representation of number)
+  if (typeof id === 'string' && /^\d+$/.test(id)) {
+    return true;
+  }
+  
+  if (typeof id === 'number' && id > 0) {
+    return true;
+  }
+  
+  return false;
 };
 
 // Configure multer for file upload
@@ -144,6 +169,11 @@ router.get('/history', auth, async (req, res) => {
 // Get specific analysis data
 router.get('/:id', auth, async (req, res) => {
   try {
+    // Validate ID parameter
+    if (!validateIdParameter(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid analysis ID provided' });
+    }
+
     let analysis;
     
     if (req.isMongoConnected) {
@@ -171,6 +201,11 @@ router.get('/:id', auth, async (req, res) => {
 // Create chart
 router.post('/:id/chart', auth, async (req, res) => {
   try {
+    // Validate ID parameter
+    if (!validateIdParameter(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid analysis ID provided' });
+    }
+
     const { chartType, xAxis, yAxis } = req.body;
     let analysis;
     
@@ -256,6 +291,11 @@ function processDataForChart(data, xAxis, yAxis, chartType) {
 // AI Summary endpoint
 router.post('/:id/ai-summary', auth, async (req, res) => {
   try {
+    // Validate ID parameter
+    if (!validateIdParameter(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid analysis ID provided' });
+    }
+
     let analysis;
     
     if (req.isMongoConnected) {
@@ -326,6 +366,11 @@ ${numericColumns.length > 0 ? `
 // Download chart endpoint
 router.get('/:id/download/:format', auth, async (req, res) => {
   try {
+    // Validate ID parameter
+    if (!validateIdParameter(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid analysis ID provided' });
+    }
+
     const { format } = req.params;
     let analysis;
     
