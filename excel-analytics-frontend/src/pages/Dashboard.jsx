@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { logout } from '../store/authSlice'
 import FileUpload from '../components/FileUpload'
 import ChartBuilder from '../components/ChartBuilder'
@@ -8,6 +9,7 @@ import api from '../utils/api'
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   
   const [analysisData, setAnalysisData] = useState(null)
   const [uploadHistory, setUploadHistory] = useState([])
@@ -75,7 +77,7 @@ const Dashboard = () => {
             <div className="flex items-center space-x-4">
               {user?.role === 'admin' && (
                 <button
-                  onClick={() => window.location.href = '/admin'}
+                  onClick={() => navigate('/admin')}
                   className="btn-secondary"
                 >
                   Admin Panel
