@@ -65,24 +65,31 @@ const FileUpload = ({ onFileUploaded }) => {
   }
 
   return (
-    <div className="card p-6">
-      <h3 className="text-lg font-semibold mb-4">Upload Excel File</h3>
+    <div className="card p-6 hover-lift animate-fadeInUp">
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2 text-gray-800">📁 Upload Excel File</h3>
+        <p className="text-gray-600">Drag and drop your Excel file or click to browse</p>
+      </div>
       
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
           dragActive
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-blue-400'
+            ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-100 scale-105'
+            : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <div className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+        <div className="space-y-6">
+          <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
+            dragActive 
+              ? 'bg-gradient-primary text-white scale-110' 
+              : 'bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600'
+          }`}>
             <svg
-              className="w-8 h-8 text-blue-600"
+              className="w-10 h-10"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -97,42 +104,80 @@ const FileUpload = ({ onFileUploaded }) => {
           </div>
           
           <div>
-            <p className="text-lg font-medium text-gray-900">
-              Drop your Excel file here, or{' '}
-              <label className="text-blue-600 hover:text-blue-500 cursor-pointer">
-                browse
-                <input
-                  type="file"
-                  className="hidden"
-                  accept=".xls,.xlsx"
-                  onChange={handleInputChange}
-                  disabled={isUploading}
-                />
-              </label>
+            <p className="text-xl font-semibold text-gray-900 mb-2">
+              {dragActive ? 'Drop your file here!' : 'Upload your Excel file'}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
-              Supports .xls and .xlsx files
+            <p className="text-gray-600 mb-4">
+              Supports .xls and .xlsx formats
             </p>
+            
+            <input
+              type="file"
+              accept=".xls,.xlsx"
+              onChange={handleInputChange}
+              className="hidden"
+              id="file-upload"
+              disabled={isUploading}
+            />
+            <label
+              htmlFor="file-upload"
+              className="btn-primary inline-flex items-center space-x-2 cursor-pointer"
+            >
+              <span>📂</span>
+              <span>Choose File</span>
+            </label>
+          </div>
+          
+          <div className="flex justify-center space-x-8 text-sm text-gray-500">
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+              <span>.xlsx files</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+              <span>.xls files</span>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Status Messages */}
       {isUploading && (
-        <div className="mt-4 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="ml-2 text-sm text-gray-600">Uploading...</span>
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fadeInScale">
+          <div className="flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="text-blue-800 font-medium">Processing your file...</span>
+          </div>
         </div>
       )}
 
-      {uploadStatus && (
-        <div className={`mt-4 p-3 rounded-md text-sm ${
+      {uploadStatus && !isUploading && (
+        <div className={`mt-6 p-4 rounded-lg animate-fadeInScale ${
           uploadStatus.includes('successfully') 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
+            ? 'bg-green-50 border border-green-200 text-green-800' 
+            : 'bg-red-50 border border-red-200 text-red-800'
         }`}>
-          {uploadStatus}
+          <div className="flex items-center space-x-3">
+            <span className="text-xl">
+              {uploadStatus.includes('successfully') ? '✅' : '❌'}
+            </span>
+            <span className="font-medium">{uploadStatus}</span>
+          </div>
         </div>
       )}
+
+      {/* Help Section */}
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-semibold text-gray-800 mb-2 flex items-center">
+          <span className="mr-2">💡</span>
+          Quick Tips
+        </h4>
+        <ul className="text-sm text-gray-600 space-y-1">
+          <li>• Ensure your Excel file has column headers in the first row</li>
+          <li>• Maximum file size: 10MB</li>
+          <li>• Data will be automatically analyzed for chart creation</li>
+        </ul>
+      </div>
     </div>
   )
 }
