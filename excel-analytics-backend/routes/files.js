@@ -323,4 +323,62 @@ ${numericColumns.length > 0 ? `
   `.trim();
 }
 
+// Download chart endpoint
+router.get('/:id/download/:format', auth, async (req, res) => {
+  try {
+    const { format } = req.params;
+    let analysis;
+    
+    if (req.isMongoConnected) {
+      analysis = await Analysis.findOne({ 
+        _id: req.params.id, 
+        userId: req.userId 
+      });
+    } else {
+      analysis = findAnalysisInMemory(req.params.id, req.userId);
+    }
+
+    if (!analysis) {
+      return res.status(404).json({ message: 'Analysis not found' });
+    }
+
+    if (!['png', 'pdf'].includes(format)) {
+      return res.status(400).json({ message: 'Invalid format. Use png or pdf' });
+    }
+
+    // For demo purposes, we'll generate a simple image/pdf response
+    // In a real implementation, you would use Puppeteer to capture the chart
+    if (format === 'png') {
+      // Create a simple demo PNG response
+      const demoImageData = generateDemoChart(analysis);
+      
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Disposition', `attachment; filename="${analysis.originalName}-chart.png"`);
+      res.send(Buffer.from(demoImageData, 'base64'));
+    } else if (format === 'pdf') {
+      // Create a simple demo PDF response
+      const demoPDFData = generateDemoPDF(analysis);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${analysis.originalName}-chart.pdf"`);
+      res.send(Buffer.from(demoPDFData, 'base64'));
+    }
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).json({ message: 'Error generating download' });
+  }
+});
+
+// Demo chart generation (placeholder)
+function generateDemoChart(analysis) {
+  // This is a minimal 1x1 PNG in base64 - in real implementation you'd use canvas/puppeteer
+  return 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+}
+
+// Demo PDF generation (placeholder)
+function generateDemoPDF(analysis) {
+  // This is a minimal PDF in base64 - in real implementation you'd use libraries like PDFKit
+  return 'JVBERi0xLjMKJcTl8uXrp/Og0MTGCjobiRQKNCg==';
+}
+
 module.exports = router;

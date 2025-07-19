@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 import { Bar, Line, Pie } from 'react-chartjs-2'
 import Chart3D from './Chart3D'
+import api from '../utils/api'
 
 ChartJS.register(
   CategoryScale,
@@ -23,6 +24,7 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
   })
   const [chartData, setChartData] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     if (chartConfig.xAxis && chartConfig.yAxis && analysisData) {
@@ -105,6 +107,35 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
         yAxis: chartConfig.yAxis,
         data: chartData
       })
+    }
+  }
+
+  const handleDownload = async (format) => {
+    if (!analysisData || isDownloading) return
+    
+    setIsDownloading(true)
+    try {
+      const response = await api.get(`/files/${analysisData.id}/download/${format}`, {
+        responseType: 'blob'
+      })
+      
+      // Create blob URL and trigger download
+      const blob = new Blob([response.data], { 
+        type: format === 'png' ? 'image/png' : 'application/pdf' 
+      })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${analysisData.filename || 'chart'}.${format}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download error:', error)
+      alert('Download failed. Please try again.')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -220,16 +251,18 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
             
             <div className="space-x-2">
               <button
-                onClick={() => {/* TODO: Implement download */}}
+                onClick={() => handleDownload('png')}
+                disabled={isDownloading}
                 className="btn-secondary"
               >
-                Download PNG
+                {isDownloading ? 'Downloading...' : 'Download PNG'}
               </button>
               <button
-                onClick={() => {/* TODO: Implement download */}}
+                onClick={() => handleDownload('pdf')}
+                disabled={isDownloading}
                 className="btn-secondary"
               >
-                Download PDF
+                {isDownloading ? 'Downloading...' : 'Download PDF'}
               </button>
             </div>
           </div>
