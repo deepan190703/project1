@@ -30,6 +30,38 @@ export const register = createAsyncThunk(
   }
 )
 
+export const checkAuth = createAsyncThunk(
+  'auth/checkAuth',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        throw new Error('No token found')
+      }
+      
+      // Decode token to get user info
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      
+      // Check if token is expired
+      if (payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem('token')
+        throw new Error('Token expired')
+      }
+      
+      // For demo purposes, we'll create a mock user object
+      // In a real app, you'd make an API call to get current user
+      const response = await axios.get(`${API_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      return { user: response.data.user, token }
+    } catch (error) {
+      localStorage.removeItem('token')
+      return rejectWithValue('Authentication failed')
+    }
+  }
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
@@ -79,6 +111,21 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload
+      })
+      .addCase(checkAuth.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.user = action.payload.user
+        state.token = action.payload.token
+        state.isAuthenticated = true
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.isLoading = false
+        state.user = null
+        state.token = null
+        state.isAuthenticated = false
       })
   },
 })

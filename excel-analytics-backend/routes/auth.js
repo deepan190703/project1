@@ -20,13 +20,13 @@ const findUserInMemory = (email) => {
 };
 
 // Helper function to create user in memory
-const createUserInMemory = ({ name, email, password }) => {
+const createUserInMemory = ({ name, email, password, role = 'user' }) => {
   const user = {
     _id: global.userIdCounter++,
     name,
     email,
     password,
-    role: 'user',
+    role,
     uploadHistory: [],
     createdAt: new Date(),
     updatedAt: new Date()
@@ -94,18 +94,22 @@ router.post('/register', async (req, res) => {
     
     if (req.isMongoConnected) {
       // Create user in MongoDB
+      const isFirstUser = await User.countDocuments() === 0;
       user = new User({
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        role: isFirstUser ? 'admin' : 'user' // Make first user admin
       });
       await user.save();
     } else {
       // Create user in memory
+      const isFirstUser = global.inMemoryUsers.length === 0;
       user = createUserInMemory({
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        role: isFirstUser ? 'admin' : 'user' // Make first user admin
       });
     }
     
@@ -166,6 +170,83 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Temporary endpoint to promote user to admin (for demo purposes)
+router.post('/promote-to-admin', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    let user;
+    
+    if (req.isMongoConnected) {
+      // Update user in MongoDB
+      user = await User.findOneAndUpdate(
+        { email },
+        { role: 'admin' },
+        { new: true }
+      );
+    } else {
+      // Update user in memory
+      const userIndex = global.inMemoryUsers.findIndex(u => u.email === email);
+      if (userIndex !== -1) {
+        global.inMemoryUsers[userIndex].role = 'admin';
+        user = global.inMemoryUsers[userIndex];
+      }
+    }
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({
+      message: 'User promoted to admin successfully',
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error('Promotion error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get current user info (requires authentication)
+router.get('/me', async (req, res) => {
+  try {
+    // This endpoint will be called with Authorization header
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+    
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    let user;
+    
+    if (req.isMongoConnected) {
+      // Find user in MongoDB
+      user = await User.findById(decoded.userId).select('-password');
+    } else {
+      // Find user in memory
+      user = global.inMemoryUsers.find(u => u._id == decoded.userId);
+      if (user) {
+        const { password, ...userWithoutPassword } = user;
+        user = userWithoutPassword;
+      }
+    }
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({
+      user: { id: user._id, name: user.name, email: user.email, role: user.role || 'user' }
+    });
+  } catch (error) {
+    console.error('Get me error:', error);
+    res.status(401).json({ message: 'Invalid token' });
   }
 });
 
