@@ -7,6 +7,35 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+// Initialize global in-memory storage for analyses
+if (!global.inMemoryAnalyses) {
+  global.inMemoryAnalyses = [];
+}
+if (!global.analysisIdCounter) {
+  global.analysisIdCounter = 1;
+}
+
+// Helper functions for in-memory operations
+const createAnalysisInMemory = (analysisData) => {
+  const analysis = {
+    _id: global.analysisIdCounter++,
+    ...analysisData,
+    charts: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+  global.inMemoryAnalyses.push(analysis);
+  return analysis;
+};
+
+const findAnalysisInMemory = (id, userId) => {
+  return global.inMemoryAnalyses.find(analysis => analysis._id == id && analysis.userId == userId);
+};
+
+const findAnalysesByUserInMemory = (userId) => {
+  return global.inMemoryAnalyses.filter(analysis => analysis.userId == userId);
+};
+
 // Configure multer for file upload
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -44,16 +73,25 @@ router.post('/upload', auth, upload.single('excel'), async (req, res) => {
     const columns = Object.keys(jsonData[0]);
     
     // Create analysis record
-    const analysis = new Analysis({
+    const analysisData = {
       userId: req.userId,
       filename: `${Date.now()}_${req.file.originalname}`,
       originalName: req.file.originalname,
       data: jsonData,
       columns,
       rowCount: jsonData.length
-    });
+    };
 
-    await analysis.save();
+    let analysis;
+    
+    if (req.isMongoConnected) {
+      // Use MongoDB
+      analysis = new Analysis(analysisData);
+      await analysis.save();
+    } else {
+      // Use in-memory storage
+      analysis = createAnalysisInMemory(analysisData);
+    }
 
     res.json({
       message: 'File uploaded and parsed successfully',
@@ -62,7 +100,8 @@ router.post('/upload', auth, upload.single('excel'), async (req, res) => {
         filename: analysis.originalName,
         columns: analysis.columns,
         rowCount: analysis.rowCount,
-        uploadDate: analysis.createdAt
+        uploadDate: analysis.createdAt,
+        data: analysis.data // Include data for demo mode
       }
     });
   } catch (error) {
@@ -74,12 +113,30 @@ router.post('/upload', auth, upload.single('excel'), async (req, res) => {
 // Get user's upload history
 router.get('/history', auth, async (req, res) => {
   try {
-    const analyses = await Analysis.find({ userId: req.userId })
-      .select('filename originalName columns rowCount createdAt')
-      .sort({ createdAt: -1 });
+    let analyses;
+    
+    if (req.isMongoConnected) {
+      // Use MongoDB
+      analyses = await Analysis.find({ userId: req.userId })
+        .select('filename originalName columns rowCount createdAt')
+        .sort({ createdAt: -1 });
+    } else {
+      // Use in-memory storage
+      analyses = findAnalysesByUserInMemory(req.userId)
+        .map(analysis => ({
+          _id: analysis._id,
+          filename: analysis.filename,
+          originalName: analysis.originalName,
+          columns: analysis.columns,
+          rowCount: analysis.rowCount,
+          createdAt: analysis.createdAt
+        }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
 
     res.json(analyses);
   } catch (error) {
+    console.error('History error:', error);
     res.status(500).json({ message: 'Error fetching history' });
   }
 });
@@ -87,10 +144,18 @@ router.get('/history', auth, async (req, res) => {
 // Get specific analysis data
 router.get('/:id', auth, async (req, res) => {
   try {
-    const analysis = await Analysis.findOne({ 
-      _id: req.params.id, 
-      userId: req.userId 
-    });
+    let analysis;
+    
+    if (req.isMongoConnected) {
+      // Use MongoDB
+      analysis = await Analysis.findOne({ 
+        _id: req.params.id, 
+        userId: req.userId 
+      });
+    } else {
+      // Use in-memory storage
+      analysis = findAnalysisInMemory(req.params.id, req.userId);
+    }
 
     if (!analysis) {
       return res.status(404).json({ message: 'Analysis not found' });
@@ -98,18 +163,27 @@ router.get('/:id', auth, async (req, res) => {
 
     res.json(analysis);
   } catch (error) {
+    console.error('Get analysis error:', error);
     res.status(500).json({ message: 'Error fetching analysis' });
   }
 });
 
-// Add to routes/files.js
+// Create chart
 router.post('/:id/chart', auth, async (req, res) => {
   try {
     const { chartType, xAxis, yAxis } = req.body;
-    const analysis = await Analysis.findOne({ 
-      _id: req.params.id, 
-      userId: req.userId 
-    });
+    let analysis;
+    
+    if (req.isMongoConnected) {
+      // Use MongoDB
+      analysis = await Analysis.findOne({ 
+        _id: req.params.id, 
+        userId: req.userId 
+      });
+    } else {
+      // Use in-memory storage
+      analysis = findAnalysisInMemory(req.params.id, req.userId);
+    }
 
     if (!analysis) {
       return res.status(404).json({ message: 'Analysis not found' });
@@ -126,14 +200,21 @@ router.post('/:id/chart', auth, async (req, res) => {
       config: chartData
     };
 
-    analysis.charts.push(chartConfig);
-    await analysis.save();
+    if (req.isMongoConnected) {
+      // Use MongoDB
+      analysis.charts.push(chartConfig);
+      await analysis.save();
+    } else {
+      // Use in-memory storage
+      analysis.charts.push(chartConfig);
+    }
 
     res.json({
       message: 'Chart created successfully',
       chart: chartConfig
     });
   } catch (error) {
+    console.error('Chart creation error:', error);
     res.status(500).json({ message: 'Error creating chart' });
   }
 });
@@ -172,133 +253,29 @@ function processDataForChart(data, xAxis, yAxis, chartType) {
   }
 }
 
-// Add to routes/files.js
-const sharp = require('sharp'); // Install: npm install sharp
-const puppeteer = require('puppeteer'); // Install: npm install puppeteer
-
-router.get('/:id/download/:format', auth, async (req, res) => {
-  try {
-    const { format } = req.params;
-    const analysis = await Analysis.findOne({ 
-      _id: req.params.id, 
-      userId: req.userId 
-    });
-
-    if (!analysis) {
-      return res.status(404).json({ message: 'Analysis not found' });
-    }
-
-    if (format === 'png') {
-      // Generate PNG using puppeteer
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      
-      // Create HTML with chart
-      const html = generateChartHTML(analysis.charts[0]);
-      await page.setContent(html);
-      await page.setViewport({ width: 800, height: 600 });
-      
-      const screenshot = await page.screenshot({ 
-        type: 'png',
-        fullPage: true 
-      });
-      
-      await browser.close();
-      
-      res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Content-Disposition', `attachment; filename="${analysis.originalName}_chart.png"`);
-      res.send(screenshot);
-    } else if (format === 'pdf') {
-      // Generate PDF
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      
-      const html = generateChartHTML(analysis.charts[0]);
-      await page.setContent(html);
-      
-      const pdf = await page.pdf({ 
-        format: 'A4',
-        printBackground: true 
-      });
-      
-      await browser.close();
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${analysis.originalName}_chart.pdf"`);
-      res.send(pdf);
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Error generating download' });
-  }
-});
-
-function generateChartHTML(chart) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    </head>
-    <body>
-      <canvas id="chart" width="800" height="600"></canvas>
-      <script>
-        const ctx = document.getElementById('chart').getContext('2d');
-        new Chart(ctx, ${JSON.stringify({
-          type: chart.type,
-          data: chart.config,
-          options: {
-            responsive: false,
-            animation: false
-          }
-        })});
-      </script>
-    </body>
-    </html>
-  `;
-}
-
-// Add to routes/files.js
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
+// AI Summary endpoint
 router.post('/:id/ai-summary', auth, async (req, res) => {
   try {
-    const analysis = await Analysis.findOne({ 
-      _id: req.params.id, 
-      userId: req.userId 
-    });
+    let analysis;
+    
+    if (req.isMongoConnected) {
+      analysis = await Analysis.findOne({ 
+        _id: req.params.id, 
+        userId: req.userId 
+      });
+    } else {
+      analysis = findAnalysisInMemory(req.params.id, req.userId);
+    }
 
     if (!analysis) {
       return res.status(404).json({ message: 'Analysis not found' });
     }
 
-    // Prepare data summary for AI
-    const dataPreview = analysis.data.slice(0, 10);
-    const prompt = `
-      Analyze this Excel data and provide insights:
-      
-      File: ${analysis.originalName}
-      Rows: ${analysis.rowCount}
-      Columns: ${analysis.columns.join(', ')}
-      
-      Sample data (first 10 rows):
-      ${JSON.stringify(dataPreview, null, 2)}
-      
-      Please provide:
-      1. Key insights about the data
-      2. Potential trends or patterns
-      3. Suggested visualizations
-      4. Data quality observations
-    `;
-
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const aiSummary = response.text();
+    // Generate a demo AI summary since we don't have API keys
+    const demoSummary = generateDemoAISummary(analysis);
 
     res.json({
-      summary: aiSummary,
+      summary: demoSummary,
       generatedAt: new Date()
     });
   } catch (error) {
@@ -307,6 +284,43 @@ router.post('/:id/ai-summary', auth, async (req, res) => {
   }
 });
 
+function generateDemoAISummary(analysis) {
+  const { data, columns, rowCount, originalName } = analysis;
+  const numericColumns = columns.filter(col => 
+    data.some(row => typeof row[col] === 'number' || !isNaN(parseFloat(row[col])))
+  );
+  
+  return `
+📊 **AI Analysis Summary for ${originalName}**
 
+**Dataset Overview:**
+- Total rows: ${rowCount}
+- Total columns: ${columns.length}
+- Numeric columns detected: ${numericColumns.join(', ') || 'None'}
+
+**Key Insights:**
+1. **Data Structure**: Your dataset contains ${columns.length} different attributes with ${rowCount} data points.
+2. **Data Types**: ${numericColumns.length} numeric columns suitable for quantitative analysis.
+3. **Completeness**: Dataset appears well-structured for analysis.
+
+**Recommended Visualizations:**
+${numericColumns.length > 0 ? `
+- Bar Chart: Compare values across categories
+- Line Chart: Show trends over time if date column present
+- Pie Chart: Show distribution of categorical data
+` : `
+- Focus on categorical data visualization
+- Consider data transformation for numeric analysis
+`}
+
+**Suggestions:**
+- Consider cleaning any missing values
+- Look for outliers in numeric data
+- Explore correlations between variables
+- Create time-series analysis if date columns are present
+
+*This is a demo AI summary. In production, this would use advanced AI models for deeper insights.*
+  `.trim();
+}
 
 module.exports = router;
