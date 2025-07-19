@@ -176,7 +176,8 @@ const Chart3D = ({ data, xAxis, yAxis }) => {
       }
       
       // Mount to DOM
-      mountRef.current.appendChild(renderer.domElement)
+      const mountElement = mountRef.current
+      mountElement.appendChild(renderer.domElement)
       animate()
       
       // Store references
@@ -198,8 +199,8 @@ const Chart3D = ({ data, xAxis, yAxis }) => {
         renderer.domElement.removeEventListener('mousedown', onMouseDown)
         renderer.domElement.removeEventListener('mouseup', onMouseUp)
         
-        if (mountRef.current && renderer.domElement && mountRef.current.contains(renderer.domElement)) {
-          mountRef.current.removeChild(renderer.domElement)
+        if (mountElement && renderer.domElement && mountElement.contains(renderer.domElement)) {
+          mountElement.removeChild(renderer.domElement)
         }
         
         renderer.dispose()

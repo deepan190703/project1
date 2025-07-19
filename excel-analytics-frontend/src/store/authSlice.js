@@ -55,7 +55,7 @@ export const checkAuth = createAsyncThunk(
       })
       
       return { user: response.data.user, token }
-    } catch (error) {
+    } catch {
       localStorage.removeItem('token')
       return rejectWithValue('Authentication failed')
     }

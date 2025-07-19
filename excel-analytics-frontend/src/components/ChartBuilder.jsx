@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 import { Bar, Line, Pie } from 'react-chartjs-2'
 import Chart3D from './Chart3D'
@@ -23,16 +23,10 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
     yAxis: '',
   })
   const [chartData, setChartData] = useState(null)
-  const [isGenerating, setIsGenerating] = useState(false)
+
   const [isDownloading, setIsDownloading] = useState(false)
 
-  useEffect(() => {
-    if (chartConfig.xAxis && chartConfig.yAxis && analysisData) {
-      generateChartData()
-    }
-  }, [chartConfig, analysisData])
-
-  const generateChartData = () => {
+  const generateChartData = useCallback(() => {
     if (!analysisData || !chartConfig.xAxis || !chartConfig.yAxis) return
 
     const labels = analysisData.data.map(row => row[chartConfig.xAxis])
@@ -41,7 +35,7 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
     let data
     switch (chartConfig.type) {
       case 'bar':
-      case 'line':
+      case 'line': {
         data = {
           labels,
           datasets: [{
@@ -54,8 +48,9 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
           }]
         }
         break
+      }
       
-      case 'pie':
+      case 'pie': {
         const uniqueLabels = [...new Set(labels)]
         const pieData = uniqueLabels.map(label => {
           const indices = labels.map((l, i) => l === label ? i : -1).filter(i => i !== -1)
@@ -74,8 +69,9 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
           }]
         }
         break
+      }
       
-      case '3d':
+      case '3d': {
         data = {
           labels,
           datasets: [{
@@ -87,13 +83,20 @@ const ChartBuilder = ({ analysisData, onChartCreated }) => {
           }]
         }
         break
+      }
       
       default:
         data = { labels, datasets: [] }
     }
 
     setChartData(data)
-  }
+  }, [analysisData, chartConfig.type, chartConfig.xAxis, chartConfig.yAxis])
+
+  useEffect(() => {
+    if (chartConfig.xAxis && chartConfig.yAxis && analysisData) {
+      generateChartData()
+    }
+  }, [chartConfig, analysisData, generateChartData])
 
   const handleConfigChange = (field, value) => {
     setChartConfig(prev => ({ ...prev, [field]: value }))

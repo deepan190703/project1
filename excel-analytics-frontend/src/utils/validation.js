@@ -15,7 +15,7 @@ export const validatePassword = (password) => {
     errors.push('Password must contain at least one lowercase letter')
   }
   
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     errors.push('Password must contain at least one special character')
   }
   
@@ -42,14 +42,13 @@ export const validateName = (name) => {
 
 export const checkPasswordStrength = (password) => {
   let score = 0
-  let feedback = []
   
   if (password.length >= 8) score++
   if (password.length >= 12) score++
   if (/[A-Z]/.test(password)) score++
   if (/[a-z]/.test(password)) score++
   if (/[0-9]/.test(password)) score++
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) score++
   
   if (score < 3) {
     return { strength: 'weak', color: 'red', feedback: 'Weak password' }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { login, clearError } from '../store/authSlice'
+import { login } from '../store/authSlice'
 import { Link, useNavigate } from 'react-router-dom'
 
 const Login = () => {
