@@ -141,12 +141,73 @@
   }
 }
 
+@keyframes gradientX {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0px);
+  }
+  40%, 43% {
+    transform: translateY(-15px);
+  }
+  70% {
+    transform: translateY(-8px);
+  }
+  90% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .animate-fadeInUp {
-  animation: fadeInUp 0.6s ease forwards;
+  animation: fadeInUp 0.8s ease forwards;
 }
 
 .animate-fadeInScale {
-  animation: fadeInScale 0.5s ease forwards;
+  animation: fadeInScale 0.6s ease forwards;
+}
+
+.animate-gradient-x {
+  animation: gradientX 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-bounce-gentle {
+  animation: bounceGentle 3s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }
 
 /* Loading animation enhancement */
