@@ -1,0 +1,34 @@
+# Jekyll Configuration for GitHub Pages
+# Exclude node_modules and other build artifacts from Jekyll processing
+
+exclude:
+  - node_modules/
+  - excel-analytics-backend/node_modules/
+  - excel-analytics-frontend/node_modules/
+  - excel-analytics-backend/package*.json
+  - excel-analytics-frontend/package*.json
+  - excel-analytics-backend/.env*
+  - excel-analytics-frontend/.env*
+  - "*.log"
+  - .git/
+  - .gitignore
+  - Gemfile
+  - Gemfile.lock
+  - LICENSE
+  - vendor/
+
+# Basic Jekyll settings
+title: "Excel Analytics Platform"
+description: "A powerful platform for uploading Excel files, analyzing data, and generating interactive 2D and 3D charts with AI-powered insights."
+
+# GitHub Pages settings
+plugins:
+  - jekyll-github-metadata
+  - jekyll-seo-tag
+
+# Markdown processing
+markdown: kramdown
+highlighter: rouge
+
+# Permalink structure
+permalink: pretty
