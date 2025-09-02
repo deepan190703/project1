@@ -15,19 +15,27 @@ const LandingPage = () => {
         {/* Additional floating elements */}
         <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-pink-300/30 to-yellow-300/30 rounded-full blur-2xl animate-float" style={{animationDelay: '2s'}}></div>
         <div className="absolute bottom-32 left-32 w-48 h-48 bg-gradient-to-r from-green-300/20 to-teal-300/20 rounded-full blur-2xl animate-float" style={{animationDelay: '4s'}}></div>
+        
+        {/* Particle effects */}
+        <div className="particle w-2 h-2 top-1/4 left-1/4" style={{animationDelay: '1s'}}></div>
+        <div className="particle w-3 h-3 top-3/4 right-1/4" style={{animationDelay: '3s'}}></div>
+        <div className="particle w-1 h-1 top-1/2 right-1/3" style={{animationDelay: '5s'}}></div>
+        <div className="particle w-2 h-2 bottom-1/4 left-1/3" style={{animationDelay: '2s'}}></div>
+        <div className="particle w-1 h-1 top-1/3 left-2/3" style={{animationDelay: '4s'}}></div>
+        <div className="particle w-2 h-2 bottom-1/3 right-1/2" style={{animationDelay: '6s'}}></div>
       </div>
 
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-xl shadow-lg border-b border-white/30 sticky top-0 z-50 transition-all duration-300">
+      <header className="glass-card shadow-glow border-b border-white/30 sticky top-0 z-50 transition-all duration-300 m-4 mb-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center group">
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-lg group-hover:shadow-glow transition-all duration-300 group-hover:scale-110">
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-3 shadow-glow group-hover:shadow-glow-lg transition-all duration-300 group-hover:scale-110 animate-glow">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent group-hover:from-indigo-700 group-hover:to-purple-700 transition-all duration-300">
+              <h1 className="text-2xl font-bold gradient-text group-hover:scale-105 transition-all duration-300">
                 Excel Analytics Platform
               </h1>
             </div>
@@ -35,7 +43,7 @@ const LandingPage = () => {
               {isAuthenticated ? (
                 <Link 
                   to="/dashboard" 
-                  className="relative bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-glow-lg transform hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
+                  className="relative bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-glow hover:shadow-glow-lg transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 overflow-hidden group"
                 >
                   <span className="relative z-10">Dashboard</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -44,13 +52,13 @@ const LandingPage = () => {
                 <>
                   <Link 
                     to="/login" 
-                    className="text-gray-700 hover:text-indigo-600 px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:bg-white/50 hover:shadow-md hover:scale-105"
+                    className="text-gray-700 hover:text-indigo-600 px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:bg-white/50 hover:shadow-md hover:scale-105 interactive-element"
                   >
                     Login
                   </Link>
                   <Link 
                     to="/register" 
-                    className="relative bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-glow-lg transform hover:-translate-y-1 transition-all duration-300 overflow-hidden group"
+                    className="relative bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-glow hover:shadow-glow-lg transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 overflow-hidden group"
                   >
                     <span className="relative z-10">Get Started</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -293,26 +301,26 @@ const LandingPage = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white/80 backdrop-blur-md border-t border-white/20 mt-24">
+      <footer className="glass-card border-t border-white/20 mt-24 mx-4 mb-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <div className="flex items-center justify-center mb-6">
-              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3 animate-glow">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold gradient-text">
                 Excel Analytics Platform
               </span>
             </div>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-lg mb-6">
               © 2024 Excel Analytics Platform. Built with MERN Stack for powerful data visualization.
             </p>
-            <div className="mt-6 flex justify-center space-x-6">
-              <a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors duration-200">Privacy</a>
-              <a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors duration-200">Terms</a>
-              <a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors duration-200">Support</a>
+            <div className="flex justify-center space-x-6">
+              <a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors duration-200 interactive-element">Privacy</a>
+              <a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors duration-200 interactive-element">Terms</a>
+              <a href="#" className="text-gray-500 hover:text-indigo-600 transition-colors duration-200 interactive-element">Support</a>
             </div>
           </div>
         </div>
